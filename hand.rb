@@ -4,27 +4,20 @@ require_relative 'deck'
 class Hand
   attr_accessor :cards
 
+  MAX_POINTS = 21
+
   def initialize(cards = [])
     @cards = cards
   end
 
   def points
     sum = 0
-    @cards.each do |card|
-      sum += card.value
-    end
-    aces = ace_separator
-    aces.each do |_ace|
-      sum += 10 if sum + 10 <= 21
+    sum = @cards.map(&:value).sum
+    aces = @cards.select(&:ace?)
+    aces.size.times do
+      corrected_sum = sum + Card::ACE_CORRECTION
+      sum = corrected_sum if corrected_sum <= Hand::MAX_POINTS
     end
     sum
-  end
-
-  def ace_separator
-    ace_array = []
-    @cards.each do |card|
-      card.ace? ? ace_array << card : card
-    end
-    ace_array
   end
 end

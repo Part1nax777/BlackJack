@@ -1,22 +1,21 @@
-require_relative 'deck'
 require_relative 'hand'
 require_relative 'player'
 require_relative 'dealer'
 require_relative 'interface'
+require_relative 'bank'
 
 class Game
-  attr_accessor :bank
   include Interface
 
   def initialize
     invite_game
     @player = user_name
     @dealer = Dealer.new
+    @bank = Bank.new
   end
 
   def start_game
     can_start_game
-    reset_round!
     @deck = Deсk.new
     make_bet
     start_player_cards
@@ -36,7 +35,7 @@ class Game
   end
 
   def can_start_game?
-    @player.balance < 10 || @dealer.balance < 10
+    @player.bank.money < 10 || @dealer.bank.money < 10
   end
 
   def can_start_game
@@ -60,14 +59,14 @@ class Game
 
   def start_calculate_score
     calculate_score_player
-    print_info(@player_hand, @player.balance)
+    print_info(@player_hand, @player.bank.money)
     calculate_score_dealer
   end
 
   def make_bet
     @bank = 0
-    @bank += @player.bet
-    @bank += @dealer.bet
+    @bank += @player.bank.bet
+    @bank += @dealer.bank.bet
   end
 
   def menu_add_card
@@ -89,48 +88,49 @@ class Game
   end
 
   def get_cards_player
-    @player_cards = @deck.take_card(2)
+    @player.fold_cards
+    @player_cards = @player.take_cards(@deck, 2)
   end
 
   def get_cards_dealer
-    @dealer_cards = @deck.take_card(2)
+    @dealer.fold_cards
+    @dealer_cards = @dealer.take_cards(@deck, 2)
   end
 
   def calculate_score_player
-    @player_hand = Hand.new(@player_cards).points
+    @player_hand = @player.points
   end
 
   def calculate_score_dealer
-    @dealer_hand = Hand.new(@dealer_cards).points
+    @dealer_hand = @dealer.points
   end
 
   def user_name
-    puts 'Enter you name'
+    puts 'Enter you name: '
     name = gets.chomp
-    if name == '' || nil
-      user_name
-    else
-      Player.new(name)
-    end
+    Player.new(name)
+  rescue RuntimeError => e
+    puts "Error: #{e.message}"
+    retry 
   end
 
   def dealer_movie
     @dealer_hand < 18
-    @dealer_cards += @deck.take_card(1)
-    @dealer_hand = Hand.new(@dealer_cards).points
+    @dealer_cards = @dealer.take_cards(@deck)
+    @dealer_hand = @dealer.points
   end
 
   def player_movie
-    @player_cards += @deck.take_card(1)
-    @player_hand = Hand.new(@player_cards).points
+    @player_cards = @player.take_cards(@deck)
+    @player_hand = @player.points
     print_player_cards(@player_cards)
-    print_info(@player_hand, @player.balance)
+    print_info(@player_hand, @player.bank.money)
   end
 
   def game_results
     winner_selection
     print_all_cards(@player_cards, @dealer_cards)
-    print_all_info(@player_hand, @player.balance, @dealer_hand, @dealer.balance)
+    print_all_info(@player_hand, @player.bank.money, @dealer_hand, @dealer.bank.money)
     print_winner_selection
   end
 
@@ -157,19 +157,12 @@ class Game
   end
 
   def win(winner)
-    winner.balance += @bank
+    winner.bank.money += @bank
     @bank = 0
   end
 
   def draw
-    @player.balance += @bank / 2
-    @dealer.balance += @bank / 2
-  end
-
-  def reset_round!
-    @player_hand = 0
-    @dealer_hand = 0
-    @player_cards = []
-    @dealer_cards = []
+    @player.bank.money += @bank / 2
+    @dealer.bank.money += @bank / 2
   end
 end

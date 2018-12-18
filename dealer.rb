@@ -1,9 +1,7 @@
-class Dealer < Player
-  attr_accessor :name, :balance, :score
+require_relative 'player'
 
+class Dealer < Player
   def initialize
-    @name = 'Dealer'
-    @balance = 100
-    @score = 0
+    super('Dealer')
   end
 end

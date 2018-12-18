@@ -1,15 +1,35 @@
-class Player
-  attr_accessor :name, :balance, :score
+require_relative 'validator'
+require_relative 'hand'
+require_relative 'bank'
+
+class Player 
+  include Validate
+  attr_accessor :name, :balance, :score, :bank
+
+  MSG_INCORRECT_NAME = 'You must input name'
+
   def initialize(name)
     @name = name
-    @balance = 100
+    @bank = Bank.new
+    @bank.set_start_amount
     @score = 0
+    validate!
+    @hand = Hand.new   
   end
 
-  def bet
-    @balance -= 10
-    10
+  def take_cards(deck, count = 1)
+    @hand.cards += deck.take_card(count)
   end
 
-  def calculate_score; end
+  def fold_cards
+    @hand.cards = []
+  end
+
+  def points
+    @hand.points
+  end
+
+  def validate!
+    raise MSG_INCORRECT_NAME if name == '' || nil
+  end
 end

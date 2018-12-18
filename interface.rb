@@ -89,7 +89,7 @@ module Interface
   def cards_to_array(cards)
     cards_array ||= []
     cards.each do |card|
-        cards_array << card
+      cards_array << card
     end
     cards_array
   end
