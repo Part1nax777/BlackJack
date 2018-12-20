@@ -16,4 +16,8 @@ class Bank
     @money -= BET
     10
   end
+
+  def put_money(amount)
+    @money += amount
+  end
 end

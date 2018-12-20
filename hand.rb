@@ -16,7 +16,7 @@ class Hand
     aces = @cards.select(&:ace?)
     aces.size.times do
       corrected_sum = sum + Card::ACE_CORRECTION
-      sum = corrected_sum if corrected_sum <= Hand::MAX_POINTS
+      sum = corrected_sum if corrected_sum <= MAX_POINTS
     end
     sum
   end

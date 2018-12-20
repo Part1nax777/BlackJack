@@ -21,7 +21,7 @@ class Game
     start_player_cards
     start_dealer_cards
     start_calculate_score
-    print_bank(@bank)
+    print_bank(@bank.money)
   end
 
   def process_turn
@@ -29,17 +29,19 @@ class Game
     value = gets.to_i
     case value
     when 1 then menu_add_card
-    when 2 then menu_scip_move
+    when 2 then menu_skip_move
     when 3 then menu_open_cards
     end
   end
 
+  private
+
   def can_start_game?
-    @player.bank.money < 10 || @dealer.bank.money < 10
+    @player.bank.money >= Bank::BET && @dealer.bank.money >= Bank::BET
   end
 
   def can_start_game
-    if can_start_game?
+    unless can_start_game?
       game_over
       exit
     end
@@ -59,14 +61,13 @@ class Game
 
   def start_calculate_score
     calculate_score_player
-    print_info(@player_hand, @player.bank.money)
+    print_info(@player.points, @player.bank.money)
     calculate_score_dealer
   end
 
   def make_bet
-    @bank = 0
-    @bank += @player.bank.bet
-    @bank += @dealer.bank.bet
+    @bank.money += @player.make_bet
+    @bank.money += @dealer.make_bet
   end
 
   def menu_add_card
@@ -76,7 +77,7 @@ class Game
     new_game
   end
 
-  def menu_scip_move
+  def menu_skip_move
     dealer_movie
     game_results
     new_game
@@ -98,11 +99,11 @@ class Game
   end
 
   def calculate_score_player
-    @player_hand = @player.points
+    @player.points
   end
 
   def calculate_score_dealer
-    @dealer_hand = @dealer.points
+    @dealer.points
   end
 
   def user_name
@@ -115,33 +116,33 @@ class Game
   end
 
   def dealer_movie
-    @dealer_hand < 18
+    return unless @dealer.will_take_card?
     @dealer_cards = @dealer.take_cards(@deck)
-    @dealer_hand = @dealer.points
+    @dealer.points
   end
 
   def player_movie
     @player_cards = @player.take_cards(@deck)
-    @player_hand = @player.points
+    @player.points
     print_player_cards(@player_cards)
-    print_info(@player_hand, @player.bank.money)
+    print_info(@player.points, @player.bank.money)
   end
 
   def game_results
     winner_selection
     print_all_cards(@player_cards, @dealer_cards)
-    print_all_info(@player_hand, @player.bank.money, @dealer_hand, @dealer.bank.money)
+    print_all_info(@player.points, @player.bank.money, @dealer.points, @dealer.bank.money)
     print_winner_selection
   end
 
   def winner_selection
-    if @player_hand > 21
+    if @player.points > Hand::MAX_POINTS
       win(@dealer)
     elsif dealer_win?
       win(@dealer)
-    elsif @player_hand == 21 || player_win?
+    elsif @player.points == Hand::MAX_POINTS || player_win?
       win(@player)
-    elsif (@player_hand == @dealer_hand) && @player_hand <= 21
+    elsif (@player.points == @dealer.points) && @player.points <= Hand::MAX_POINTS
       draw
     else
       win(@dealer)
@@ -149,20 +150,21 @@ class Game
   end
 
   def dealer_win?
-    @player_hand > 21 && @dealer_hand > 21
+    @player.points > Hand::MAX_POINTS && @dealer.points > Hand::MAX_POINTS
   end
 
   def player_win?
-    (@player_hand < 21 && @dealer_hand > 21) || (@player_hand > @dealer_hand)
+    (@player.points <= Hand::MAX_POINTS && @dealer.points > Hand::MAX_POINTS) || (@player.points > @dealer.points)
   end
 
   def win(winner)
-    winner.bank.money += @bank
-    @bank = 0
+    winner.give_money(@bank.money)
+    @bank.money = 0
   end
 
   def draw
-    @player.bank.money += @bank / 2
-    @dealer.bank.money += @bank / 2
+    @draw_bank = @bank.money / 2
+    @player.give_money(@draw_bank)
+    @dealer.give_money(@draw_bank)
   end
 end

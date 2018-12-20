@@ -4,7 +4,7 @@ require_relative 'bank'
 
 class Player 
   include Validate
-  attr_accessor :name, :balance, :score, :bank
+  attr_accessor :name, :score, :bank
 
   MSG_INCORRECT_NAME = 'You must input name'
 
@@ -28,6 +28,16 @@ class Player
   def points
     @hand.points
   end
+
+  def give_money(amount)
+    @bank.put_money(amount)
+  end
+
+  def make_bet
+    @bank.bet
+  end
+
+  private
 
   def validate!
     raise MSG_INCORRECT_NAME if name == '' || nil

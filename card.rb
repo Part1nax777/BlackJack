@@ -20,9 +20,13 @@ class Card
     end
   end
 
+  private
+
   def face_card?
     'JQK'.include?(rank.to_s)
   end
+
+  public
 
   def ace?
     @rank == 'A'

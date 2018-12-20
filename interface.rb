@@ -59,9 +59,9 @@ module Interface
   end
 
   def print_winner_selection
-    if player_win? && @player_hand <= 21
+    if player_win? && @player.points <= 21
       print_player_win(@player)
-    elsif @player_hand == @dealer_hand
+    elsif @player.points == @dealer.points
       print_draw
     else
       print_dealer_win
@@ -77,11 +77,11 @@ module Interface
     puts "Dealer info: score: #{dealer_score}, bank: #{dealer_bank}"
   end
 
-  def print_all_cards(player_cards, dealer_cards)
+  def print_all_cards(player_card, dealer_card)
     puts 'Player cards: '
-    print_player_cards(player_cards)
+    print_player_cards(player_card)
     puts 'Dealer cards: '
-    print_player_cards(dealer_cards)
+    print_player_cards(dealer_card)
   end
 
   private
