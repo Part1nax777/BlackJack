@@ -138,11 +138,8 @@ class Game
   end
 
   def winner_selection
-    if @player.points > Hand::MAX_POINTS && @dealer.points > Hand::MAX_POINTS
-      draw
-    elsif @player.points == @dealer.points
-      draw
-    elsif @player.points > Hand::MAX_POINTS
+    return if (@player.points > Hand::MAX_POINTS && @dealer.points > Hand::MAX_POINTS) || @player.points == @dealer.points
+    if @player.points > Hand::MAX_POINTS
       @dealer
     elsif @dealer.points > Hand::MAX_POINTS
       @player
@@ -151,8 +148,8 @@ class Game
     end
   end
 
-  def win(winner_selection)
-    winner_selection.give_money(@bank.money)
+  def win(winner)
+    winner.give_money(@bank.money)
     @bank.money = 0
   end
 
