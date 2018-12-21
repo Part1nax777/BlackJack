@@ -1,17 +1,6 @@
-module Interface
+class Interface
 
-  def invite_game
-    puts 'Welcome to Black Jack'
-  end 
-
-  def new_game
-    puts 'New round? (y/n)'
-    if gets.chomp == 'y'
-      start_game
-    else
-      exit
-    end
-  end
+  INVITE_GAME = 'Welcome to Black Jack'
 
   def show_menu
     puts <<~MENU
@@ -38,43 +27,30 @@ module Interface
     puts '*'
   end
 
-  def print_info(score, balance)
-    puts "Hand score: #{score}, Balance: #{balance}"
+  def print_info(player)
+    puts "Hand score: #{player.points}, Balance: #{player.bank.money}"
   end
 
   def print_bank(bank)
     puts "Bank: #{bank}"
   end
 
-  def print_player_win(name)
-    puts "Player #{name.name} win"
-  end
-
-  def print_dealer_win
-    puts 'Dealer win'
+  def print_winner(winner)
+    puts "#{winner.name} win!"
   end
 
   def print_draw
     puts 'Draw'
   end
 
-  def print_winner_selection
-    if player_win? && @player.points <= 21
-      print_player_win(@player)
-    elsif @player.points == @dealer.points
-      print_draw
-    else
-      print_dealer_win
-    end 
-  end
 
   def game_over
     puts 'Game over, you not have money'
   end
 
-  def print_all_info(player_score, player_bank, dealer_score, dealer_bank)
-    puts "Player info: score: #{player_score}, bank: #{player_bank}"
-    puts "Dealer info: score: #{dealer_score}, bank: #{dealer_bank}"
+  def print_all_info(player, dealer)
+    puts "Player info: score: #{player.points}, bank: #{player.bank.money}"
+    puts "Dealer info: score: #{dealer.points}, bank: #{dealer.bank.money}"
   end
 
   def print_all_cards(player_card, dealer_card)

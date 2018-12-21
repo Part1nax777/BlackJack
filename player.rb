@@ -2,11 +2,11 @@ require_relative 'validator'
 require_relative 'hand'
 require_relative 'bank'
 
-class Player 
+class Player
   include Validate
-  attr_accessor :name, :score, :bank
+  attr_accessor :name, :score, :bank, :hand
 
-  MSG_INCORRECT_NAME = 'You must input name'
+  MSG_INCORRECT_NAME = 'You must input name'.freeze
 
   def initialize(name)
     @name = name
@@ -14,7 +14,11 @@ class Player
     @bank.set_start_amount
     @score = 0
     validate!
-    @hand = Hand.new   
+    @hand = Hand.new
+  end
+
+  def can_start_game?
+    @bank.money >= Bank::BET
   end
 
   def take_cards(deck, count = 1)

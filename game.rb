@@ -5,13 +5,12 @@ require_relative 'interface'
 require_relative 'bank'
 
 class Game
-  include Interface
-
   def initialize
-    invite_game
+    puts Interface::INVITE_GAME
     @player = user_name
     @dealer = Dealer.new
     @bank = Bank.new
+    @interface = Interface.new
   end
 
   def start_game
@@ -20,12 +19,12 @@ class Game
     make_bet
     start_player_cards
     start_dealer_cards
-    start_calculate_score
-    print_bank(@bank.money)
+    show_start_score
+    @interface.print_bank(@bank.money)
   end
 
   def process_turn
-    show_menu
+    @interface.show_menu
     value = gets.to_i
     case value
     when 1 then menu_add_card
@@ -37,37 +36,44 @@ class Game
   private
 
   def can_start_game?
-    @player.bank.money >= Bank::BET && @dealer.bank.money >= Bank::BET
+    @player.can_start_game? && @dealer.can_start_game?
   end
 
   def can_start_game
     unless can_start_game?
-      game_over
+      @interface.game_over
       exit
     end
   end
 
   def start_player_cards
     get_cards_player
-    print_header(@player.name)
-    print_player_cards(@player_cards)
+    @interface.print_header(@player.name)
+    @interface.print_player_cards(@player_cards)
   end
 
   def start_dealer_cards
     get_cards_dealer
-    print_header(@dealer.name)
-    print_dealer_two_cards
+    @interface.print_header(@dealer.name)
+    @interface.print_dealer_two_cards
   end
 
-  def start_calculate_score
-    calculate_score_player
-    print_info(@player.points, @player.bank.money)
-    calculate_score_dealer
+  def show_start_score
+    @interface.print_info(@player)
   end
 
   def make_bet
-    @bank.money += @player.make_bet
-    @bank.money += @dealer.make_bet
+    @bank.put_money(@player.make_bet)
+    @bank.put_money(@dealer.make_bet)
+  end
+
+  def new_game
+    puts 'New round? (y/n)'
+    if gets.chomp == 'y'
+      start_game
+    else
+      exit
+    end
   end
 
   def menu_add_card
@@ -98,67 +104,55 @@ class Game
     @dealer_cards = @dealer.take_cards(@deck, 2)
   end
 
-  def calculate_score_player
-    @player.points
-  end
-
-  def calculate_score_dealer
-    @dealer.points
-  end
-
   def user_name
     puts 'Enter you name: '
     name = gets.chomp
     Player.new(name)
   rescue RuntimeError => e
     puts "Error: #{e.message}"
-    retry 
+    retry
   end
 
   def dealer_movie
     return unless @dealer.will_take_card?
-    @dealer_cards = @dealer.take_cards(@deck)
-    @dealer.points
+
+    @dealer.take_cards(@deck)
   end
 
   def player_movie
-    @player_cards = @player.take_cards(@deck)
-    @player.points
-    print_player_cards(@player_cards)
-    print_info(@player.points, @player.bank.money)
+    @player.take_cards(@deck)
   end
 
   def game_results
-    winner_selection
-    print_all_cards(@player_cards, @dealer_cards)
-    print_all_info(@player.points, @player.bank.money, @dealer.points, @dealer.bank.money)
-    print_winner_selection
-  end
-
-  def winner_selection
-    if @player.points > Hand::MAX_POINTS
-      win(@dealer)
-    elsif dealer_win?
-      win(@dealer)
-    elsif @player.points == Hand::MAX_POINTS || player_win?
-      win(@player)
-    elsif (@player.points == @dealer.points) && @player.points <= Hand::MAX_POINTS
-      draw
+    @interface.print_all_cards(@player.hand.cards, @dealer.hand.cards)
+    winner = winner_selection
+    if winner
+      win(winner)
+      @interface.print_winner(winner)
+      @interface.print_all_info(@player, @dealer)
     else
-      win(@dealer)
+      draw
+      @interface.print_draw
+      @interface.print_all_info(@player, @dealer)
     end
   end
 
-  def dealer_win?
-    @player.points > Hand::MAX_POINTS && @dealer.points > Hand::MAX_POINTS
+  def winner_selection
+    if @player.points > Hand::MAX_POINTS && @dealer.points > Hand::MAX_POINTS
+      draw
+    elsif @player.points == @dealer.points
+      draw
+    elsif @player.points > Hand::MAX_POINTS
+      @dealer
+    elsif @dealer.points > Hand::MAX_POINTS
+      @player
+    else
+      [@player, @dealer].max_by(&:points)
+    end
   end
 
-  def player_win?
-    (@player.points <= Hand::MAX_POINTS && @dealer.points > Hand::MAX_POINTS) || (@player.points > @dealer.points)
-  end
-
-  def win(winner)
-    winner.give_money(@bank.money)
+  def win(winner_selection)
+    winner_selection.give_money(@bank.money)
     @bank.money = 0
   end
 
