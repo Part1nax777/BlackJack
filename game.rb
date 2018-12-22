@@ -6,11 +6,11 @@ require_relative 'bank'
 
 class Game
   def initialize
-    puts Interface::INVITE_GAME
+    @interface = Interface.new
+    @interface.invite_game
     @player = user_name
     @dealer = Dealer.new
     @bank = Bank.new
-    @interface = Interface.new
   end
 
   def start_game
@@ -24,8 +24,7 @@ class Game
   end
 
   def process_turn
-    @interface.show_menu
-    value = gets.to_i
+    value = @interface.show_menu
     case value
     when 1 then menu_add_card
     when 2 then menu_skip_move
@@ -68,8 +67,7 @@ class Game
   end
 
   def new_game
-    puts 'New round? (y/n)'
-    if gets.chomp == 'y'
+    if @interface.ask_new_round?
       start_game
     else
       exit
@@ -105,11 +103,10 @@ class Game
   end
 
   def user_name
-    puts 'Enter you name: '
-    name = gets.chomp
+    name = @interface.ask_name
     Player.new(name)
   rescue RuntimeError => e
-    puts "Error: #{e.message}"
+    @interface.error_message(e)
     retry
   end
 
@@ -138,7 +135,8 @@ class Game
   end
 
   def winner_selection
-    return if (@player.points > Hand::MAX_POINTS && @dealer.points > Hand::MAX_POINTS) || @player.points == @dealer.points
+    return if @player.points > Hand::MAX_POINTS && @dealer.points > Hand::MAX_POINTS 
+    return if @player.points == @dealer.points
     if @player.points > Hand::MAX_POINTS
       @dealer
     elsif @dealer.points > Hand::MAX_POINTS

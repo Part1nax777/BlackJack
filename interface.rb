@@ -2,6 +2,10 @@ class Interface
 
   INVITE_GAME = 'Welcome to Black Jack'
 
+  def invite_game
+    puts INVITE_GAME
+  end
+
   def show_menu
     puts <<~MENU
     MENU:
@@ -9,6 +13,7 @@ class Interface
     2. Scip move.
     3. Open cards.
     MENU
+    gets.to_i
   end 
 
   def print_header(name)
@@ -21,6 +26,20 @@ class Interface
     puts "#{card.rank} #{card.suit}"
     end
   end
+
+  def ask_new_round?
+    puts 'New round? (y/n)'
+    true if gets.chomp == 'y'
+  end
+
+  def ask_name
+    puts 'Enter you name: '
+    gets.chomp
+  end
+
+  def error_message(e)
+    puts "Error: #{e.message}"
+  end      
 
   def print_dealer_two_cards
     puts '*'
